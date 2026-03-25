@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="panel hero-panel">
+    <h2>Upload Screenshot</h2>
+    <p class="panel-copy">Submit one Apple Workouts screenshot. You will review and edit the extracted data before anything is written to the database.</p>
+    <form method="post" enctype="multipart/form-data" class="stack">
+      {{ form.hidden_tag() }}
+      <label>
+        <span>Workout screenshot</span>
+        {{ form.screenshot() }}
+      </label>
+      {{ form.submit(class_="primary-button") }}
+    </form>
+  </section>
+{% endblock %}

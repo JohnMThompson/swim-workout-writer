@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="panel narrow hero-panel">
+    <h2>Private Access</h2>
+    <p class="panel-copy">Use the same companion-app styling as the Analytics and Reporting Hub, with a streamlined login for quick mobile intake.</p>
+    <form method="post" class="stack">
+      {{ form.hidden_tag() }}
+      <label>
+        <span>Username</span>
+        {{ form.username() }}
+      </label>
+      <label>
+        <span>Password</span>
+        {{ form.password() }}
+      </label>
+      {{ form.submit(class_="primary-button") }}
+    </form>
+  </section>
+{% endblock %}

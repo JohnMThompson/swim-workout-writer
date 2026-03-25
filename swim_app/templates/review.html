@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="review-grid">
+    <article class="panel">
+      <h2>Review Extracted Workout</h2>
+      {% if duplicate_matches %}
+        <div class="inline-warning">
+          Possible duplicate: {{ duplicate_matches|length }} existing workout{{ '' if duplicate_matches|length == 1 else 's' }} match this date, time, location, distance, and duration.
+        </div>
+      {% endif %}
+      {% if stroke_mismatch %}
+        <div class="inline-warning">
+          Stroke total is {{ stroke_total }} yd, but total distance is {{ form.total_distance_yards.data }} yd.
+        </div>
+      {% endif %}
+      <form method="post" class="stack">
+        {{ form.hidden_tag() }}
+        <div class="field-grid">
+          <label><span>Workout date</span>{{ form.workout_date() }}</label>
+          <label><span>Start time</span>{{ form.start_time() }}</label>
+          <label><span>End time</span>{{ form.end_time() }}</label>
+          <label><span>Duration (minutes)</span>{{ form.duration() }}</label>
+          <label><span>Total distance yards</span>{{ form.total_distance_yards() }}</label>
+          <label><span>Location</span>{{ form.location() }}</label>
+          <label><span>Freestyle yards</span>{{ form.freestyle_distance() }}</label>
+          <label><span>Breaststroke yards</span>{{ form.breaststroke_distance() }}</label>
+          <label><span>Backstroke yards</span>{{ form.backstroke_distance() }}</label>
+          <label><span>Butterfly yards</span>{{ form.butterfly_distance() }}</label>
+        </div>
+        <label>
+          <span>Comments</span>
+          {{ form.comments(rows=4) }}
+        </label>
+        <label class="checkbox-row">
+          {{ form.allow_stroke_mismatch() }}
+          <span>Allow save when stroke total does not match total distance</span>
+        </label>
+        <div class="form-actions">
+          <a class="ghost-button link-button" href="{{ url_for('main.upload') }}">Back to upload</a>
+          {{ form.submit(class_="primary-button") }}
+        </div>
+      </form>
+    </article>
+
+    <aside class="stack">
+      <section class="panel">
+        <h3>Screenshot</h3>
+        <img
+          class="preview-image"
+          src="{{ url_for('main.uploaded_file', filename=upload_session.image_filename) }}"
+          alt="Uploaded workout screenshot">
+      </section>
+
+      <section class="panel">
+        <h3>Parsed Stroke Segments</h3>
+        <ul class="plain-list">
+          {% for stroke in raw_strokes %}
+            <li>{{ stroke.label }}: {{ stroke.yards }} yd</li>
+          {% else %}
+            <li>No stroke segments detected.</li>
+          {% endfor %}
+        </ul>
+        <p class="muted-note">Current stroke total: {{ stroke_total }} yd</p>
+      </section>
+
+      {% if duplicate_matches %}
+        <section class="panel">
+          <h3>Possible Duplicates</h3>
+          <ul class="plain-list">
+            {% for workout in duplicate_matches %}
+              <li>{{ workout.start_date_time.strftime('%Y-%m-%d %H:%M') }} | {{ workout.location }} | {{ workout.total_distance_yards }} yd | {{ workout.duration }} min</li>
+            {% endfor %}
+          </ul>
+        </section>
+      {% endif %}
+
+      {% if unknown_strokes %}
+        <section class="panel">
+          <h3>Unknown Stroke Labels</h3>
+          <p>Choose a permanent mapping, then re-upload the screenshot to apply it.</p>
+          {% for mapping_form in mapping_forms %}
+            <form method="post" action="{{ url_for('main.save_mapping') }}" class="mapping-row">
+              {{ mapping_form.hidden_tag() }}
+              <strong>{{ mapping_form.source_label.data }}</strong>
+              {{ mapping_form.target_stroke() }}
+              {{ mapping_form.submit(class_="ghost-button") }}
+            </form>
+          {% endfor %}
+        </section>
+      {% endif %}
+    </aside>
+  </section>
+{% endblock %}

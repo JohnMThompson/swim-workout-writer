@@ -1,14 +1,16 @@
 services:
-    web:
-      ports: !reset []
-      expose:
-        - "8000"
-      restart: unless-stopped
-      networks:
-        - default
-        - ai_analytics_shared
+  web:
+    ports: !reset []
+    expose:
+      - "8000"
+    restart: unless-stopped
+    networks:
+      default: null
+      ai_analytics_shared:
+        aliases:
+          - swim-workout-writer
 
 networks:
   ai_analytics_shared:
     external: true
-    name: ai-analytics_ai-analytics
+    name: ${SHARED_PROXY_NETWORK:?set SHARED_PROXY_NETWORK in .env}

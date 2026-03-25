@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from pathlib import Path
 
 import pytest
 
@@ -207,3 +208,56 @@ def test_review_shows_duplicate_warning(app, client):
     response = client.get(f"/review/{upload_id}")
 
     assert b"Possible duplicate" in response.data
+
+
+def test_review_save_deletes_uploaded_file_after_success(app, client):
+    login(client)
+
+    upload_path = Path(app.root_path).parent / "uploads" / "delete-me.png"
+    upload_path.write_bytes(b"fake image")
+
+    with app.app_context():
+        session = UploadSession(
+            image_filename="delete-me.png",
+            extracted_payload={
+                "workout_date": "2026-03-24",
+                "start_time": "16:45",
+                "end_time": "17:15",
+                "duration": 30,
+                "total_distance_yards": 736,
+                "location": "Minnetonka",
+                "comments": "",
+                "freestyle_distance": 598,
+                "breaststroke_distance": 138,
+                "backstroke_distance": 0,
+                "butterfly_distance": 0,
+                "raw_strokes": [],
+                "unknown_strokes": [],
+                "ocr_text": "",
+            },
+        )
+        db.session.add(session)
+        db.session.commit()
+        upload_id = session.id
+
+    response = client.post(
+        f"/review/{upload_id}",
+        data={
+            "upload_id": str(upload_id),
+            "workout_date": "2026-03-24",
+            "start_time": "16:45",
+            "end_time": "17:15",
+            "duration": "30",
+            "total_distance_yards": "736",
+            "location": "Minnetonka",
+            "comments": "",
+            "freestyle_distance": "598",
+            "breaststroke_distance": "138",
+            "backstroke_distance": "0",
+            "butterfly_distance": "0",
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert not upload_path.exists()

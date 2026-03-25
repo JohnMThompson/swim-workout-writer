@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import date
 from pathlib import Path
 from uuid import uuid4
+import os
 
 from flask import (
     Blueprint,
@@ -156,6 +157,7 @@ def review(upload_id: int):
         db.session.add(workout)
         db.session.delete(upload_session)
         db.session.commit()
+        _delete_uploaded_file(upload_session.image_filename)
         flash("Workout saved.", "success")
         return redirect(url_for("main.upload"))
 
@@ -241,3 +243,11 @@ def _sum_stroke_fields(payload: dict) -> int:
             "butterfly_distance",
         ]
     )
+
+
+def _delete_uploaded_file(filename: str) -> None:
+    path = Path(bp.root_path).parent / "uploads" / filename
+    try:
+        os.remove(path)
+    except FileNotFoundError:
+        return

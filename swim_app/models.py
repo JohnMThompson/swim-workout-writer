@@ -10,6 +10,8 @@ from .extensions import db, login_manager
 
 
 class User(UserMixin, db.Model):
+    __tablename__ = "user"
+
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
@@ -36,6 +38,8 @@ def load_user(user_id: str) -> User | None:
 
 
 class StrokeMapping(db.Model):
+    __tablename__ = "stroke_mapping"
+
     id = db.Column(db.Integer, primary_key=True)
     source_label = db.Column(db.String(255), unique=True, nullable=False)
     target_stroke = db.Column(db.String(32), nullable=False)
@@ -58,6 +62,8 @@ class Workout(db.Model):
 
 
 class UploadSession(db.Model):
+    __tablename__ = "upload_session"
+
     id = db.Column(db.Integer, primary_key=True)
     image_filename = db.Column(db.String(255), nullable=False)
     extracted_payload = db.Column(db.JSON, nullable=False)

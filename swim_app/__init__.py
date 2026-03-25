@@ -2,10 +2,11 @@ from pathlib import Path
 
 from flask import Flask
 from dotenv import load_dotenv
+from sqlalchemy import inspect
 from sqlalchemy.exc import IntegrityError
 
 from .extensions import csrf, db, login_manager
-from .models import StrokeMapping, User
+from .models import StrokeMapping, UploadSession, User, Workout
 
 
 def create_app() -> Flask:
@@ -28,7 +29,10 @@ def create_app() -> Flask:
     app.register_blueprint(bp)
 
     with app.app_context():
-        db.create_all()
+        if _should_auto_create_schema(app):
+            db.create_all()
+        else:
+            _validate_required_tables()
         _ensure_default_admin()
         _ensure_default_stroke_mappings()
 
@@ -96,3 +100,30 @@ def _normalize_database_uri(database_uri: str | None, instance_path: str) -> str
     absolute_target = Path.cwd() / sqlite_target
     absolute_target.parent.mkdir(parents=True, exist_ok=True)
     return sqlite_prefix + str(absolute_target)
+
+
+def _should_auto_create_schema(app: Flask) -> bool:
+    configured = app.config.get("AUTO_CREATE_SCHEMA")
+    if configured is not None:
+        return str(configured).lower() == "true"
+
+    database_uri = app.config["SQLALCHEMY_DATABASE_URI"]
+    return database_uri.startswith("sqlite:///") or database_uri == "sqlite:///:memory:"
+
+
+def _validate_required_tables() -> None:
+    inspector = inspect(db.engine)
+    existing_tables = set(inspector.get_table_names())
+    required_tables = {
+        User.__tablename__,
+        StrokeMapping.__tablename__,
+        UploadSession.__tablename__,
+        Workout.__tablename__,
+    }
+    missing_tables = sorted(required_tables - existing_tables)
+    if missing_tables:
+        raise RuntimeError(
+            "Missing required tables for production startup: "
+            + ", ".join(missing_tables)
+            + ". Set AUTO_CREATE_SCHEMA=true only if you intentionally want the app to create them."
+        )

@@ -3,6 +3,7 @@
 Private mobile-friendly web app for uploading Apple Workouts swim screenshots, reviewing parsed workout fields, and writing them to a MySQL-compatible database.
 
 The production workout destination table is `swim_tracking`.
+In production, schema auto-creation should remain disabled so startup fails fast if required tables are missing.
 
 ## Features
 - Single-user login
@@ -22,6 +23,12 @@ Default local storage uses SQLite. Point `DATABASE_URL` at MySQL in production, 
 
 ```bash
 DATABASE_URL=mysql+pymysql://user:password@host:3306/database_name
+```
+
+For local SQLite development, schema is auto-created by default. For production-style deployments, set:
+
+```bash
+AUTO_CREATE_SCHEMA=false
 ```
 
 ## Docker

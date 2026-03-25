@@ -73,6 +73,7 @@ Edit `/opt/swim-workout-writer/.env` with production values:
 - `APP_DOMAIN=swim-writer.johnthompson.io`
 - `SHARED_PROXY_NETWORK=ai-analytics_ai-analytics`
 - `DEBUG=false`
+- `AUTO_CREATE_SCHEMA=false`
 - `SECRET_KEY=<long random value>`
 - `ADMIN_USERNAME=<your login>`
 - `ADMIN_PASSWORD=<strong password>`

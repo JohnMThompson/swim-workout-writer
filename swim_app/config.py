@@ -10,4 +10,5 @@ class Config:
     UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER", "uploads")
     ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
     ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "change-me-now")
+    AUTO_CREATE_SCHEMA = os.environ.get("AUTO_CREATE_SCHEMA")
     WTF_CSRF_TIME_LIMIT = None

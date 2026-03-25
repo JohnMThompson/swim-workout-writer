@@ -5,9 +5,12 @@ services:
       - "8000"
     restart: unless-stopped
     networks:
-      - default
-      - ai-analytics
+      default: null
+      ai_analytics_shared:
+        aliases:
+          - swim-workout-writer
 
 networks:
-  ai-analytics:
+  ai_analytics_shared:
     external: true
+    name: ${SHARED_PROXY_NETWORK:?set SHARED_PROXY_NETWORK in .env}

@@ -37,6 +37,8 @@ Production uses:
 - `docker-compose.analytics.yml` for deployment on the existing analytics droplet with shared Caddy
 - `deploy/Caddyfile` for HTTPS reverse proxying
 
+For shared-Caddy deployment, set `SHARED_PROXY_NETWORK` in `.env` to the external Docker network used by the existing reverse proxy stack.
+
 See [docs/deploy-digitalocean.md](/home/john/git-repos/swim-workout-writer/docs/deploy-digitalocean.md) for the DigitalOcean deployment runbook.
 
 ## Notes

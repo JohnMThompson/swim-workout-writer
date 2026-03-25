@@ -71,6 +71,7 @@ mkdir -p uploads instance
 Edit `/opt/swim-workout-writer/.env` with production values:
 
 - `APP_DOMAIN=swim-writer.johnthompson.io`
+- `SHARED_PROXY_NETWORK=ai-analytics_ai-analytics`
 - `DEBUG=false`
 - `SECRET_KEY=<long random value>`
 - `ADMIN_USERNAME=<your login>`
@@ -94,7 +95,7 @@ docker compose -f docker-compose.yml -f docker-compose.analytics.yml ps
 docker ps --format '{{.Names}}'
 ```
 
-The app container should now be reachable on the shared Docker network as `swim-workout-writer-web-1:8000`.
+The app container should now be reachable on the shared Docker network through the stable alias `swim-workout-writer:8000`.
 
 ## 7. Caddy route on the analytics stack
 
@@ -110,7 +111,7 @@ swim-writer.johnthompson.io {
 
   route {
     respond @blocked 404
-    reverse_proxy swim-workout-writer-web-1:8000
+    reverse_proxy swim-workout-writer:8000
   }
 
   header {
@@ -167,4 +168,5 @@ If you use rollback often, replace detached checkouts with a branch-based proced
 - `uploads/` is only transient review storage; files are deleted after successful saves.
 - `instance/` is mounted so SQLite local testing and any instance state stay outside the container filesystem.
 - This app does not run its own Caddy container on the analytics droplet.
+- The shared proxy network name is provided by `SHARED_PROXY_NETWORK` so the repo does not hardcode droplet-specific Docker metadata.
 - If the MySQL droplet has a firewall, allow inbound MySQL only from the analytics droplet IP.

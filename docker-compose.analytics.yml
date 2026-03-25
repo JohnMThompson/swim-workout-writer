@@ -1,0 +1,13 @@
+services:
+  web:
+    ports: !reset []
+    expose:
+      - "8000"
+    restart: unless-stopped
+    networks:
+      - default
+      - ai-analytics
+
+networks:
+  ai-analytics:
+    external: true

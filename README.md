@@ -27,6 +27,16 @@ DATABASE_URL=mysql+pymysql://user:password@host:3306/database_name
 docker compose up --build
 ```
 
+## Production deployment
+
+Production uses:
+- `docker-compose.yml` for the app service
+- `docker-compose.prod.yml` for standalone production with its own Caddy
+- `docker-compose.analytics.yml` for deployment on the existing analytics droplet with shared Caddy
+- `deploy/Caddyfile` for HTTPS reverse proxying
+
+See [docs/deploy-digitalocean.md](/home/john/git-repos/swim-workout-writer/docs/deploy-digitalocean.md) for the DigitalOcean deployment runbook.
+
 ## Notes
 - Unknown stroke labels can be mapped permanently from the review screen.
 - Uploaded screenshots are stored in `uploads/`.

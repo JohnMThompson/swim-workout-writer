@@ -9,6 +9,7 @@ from flask import (
     Blueprint,
     abort,
     flash,
+    jsonify,
     redirect,
     render_template,
     request,
@@ -32,6 +33,11 @@ def index():
     if current_user.is_authenticated:
         return redirect(url_for("main.upload"))
     return redirect(url_for("main.login"))
+
+
+@bp.route("/healthz")
+def healthz():
+    return jsonify({"status": "ok"})
 
 
 @bp.route("/login", methods=["GET", "POST"])

@@ -43,7 +43,7 @@ class StrokeMapping(db.Model):
 
 
 class Workout(db.Model):
-    __tablename__ = "workouts"
+    __tablename__ = "swim_tracking"
 
     id = db.Column(db.Integer, primary_key=True)
     start_date_time = db.Column(db.DateTime, nullable=False)

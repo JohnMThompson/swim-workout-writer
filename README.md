@@ -2,6 +2,8 @@
 
 Private mobile-friendly web app for uploading Apple Workouts swim screenshots, reviewing parsed workout fields, and writing them to a MySQL-compatible database.
 
+The production workout destination table is `swim_tracking`.
+
 ## Features
 - Single-user login
 - Screenshot upload from mobile

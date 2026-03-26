@@ -1,0 +1,76 @@
+name: Deploy Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to analytics droplet
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Validate deployment secrets
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_APP_DIR: ${{ secrets.DEPLOY_APP_DIR }}
+          DEPLOY_HEALTHCHECK_URL: ${{ secrets.DEPLOY_HEALTHCHECK_URL }}
+        run: |
+          set -eu
+          test -n "$DEPLOY_HOST"
+          test -n "$DEPLOY_USER"
+          test -n "$DEPLOY_SSH_KEY"
+          test -n "$DEPLOY_APP_DIR"
+          test -n "$DEPLOY_HEALTHCHECK_URL"
+
+      - name: Start SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
+
+      - name: Add deploy host to known_hosts
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+        run: |
+          set -eu
+          mkdir -p ~/.ssh
+          port="${DEPLOY_PORT:-22}"
+          ssh-keyscan -p "$port" -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+
+      - name: Deploy on remote host
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_APP_DIR: ${{ secrets.DEPLOY_APP_DIR }}
+        run: |
+          set -euo pipefail
+          port="${DEPLOY_PORT:-22}"
+          ssh -p "$port" "$DEPLOY_USER@$DEPLOY_HOST" \
+            "cd '$DEPLOY_APP_DIR' && \
+            git fetch origin && \
+            git pull --ff-only origin main && \
+            docker compose -f docker-compose.yml -f docker-compose.analytics.yml up -d --build"
+
+      - name: Verify deployment health
+        env:
+          DEPLOY_HEALTHCHECK_URL: ${{ secrets.DEPLOY_HEALTHCHECK_URL }}
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error \
+            --retry 6 \
+            --retry-all-errors \
+            --retry-delay 5 \
+            "$DEPLOY_HEALTHCHECK_URL"

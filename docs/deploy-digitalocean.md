@@ -153,6 +153,37 @@ git pull --ff-only origin main
 docker compose -f docker-compose.yml -f docker-compose.analytics.yml up -d --build
 ```
 
+## 8a. GitHub Actions deploy automation
+
+The repo includes a GitHub Actions workflow at `.github/workflows/deploy.yml`.
+It deploys on pushes to `main` and can also be run manually from the Actions tab.
+
+Configure these repository secrets before enabling production deploys:
+
+- `DEPLOY_HOST`: analytics droplet hostname or IP
+- `DEPLOY_PORT`: SSH port, usually `22` (optional)
+- `DEPLOY_USER`: SSH user on the droplet
+- `DEPLOY_SSH_KEY`: private SSH key for that user
+- `DEPLOY_APP_DIR`: app checkout path on the droplet, for example `/opt/swim-workout-writer`
+- `DEPLOY_HEALTHCHECK_URL`: public health check URL, for example `https://swim-writer.johnthompson.io/healthz`
+
+The workflow performs the same deploy steps as the manual runbook:
+
+```bash
+cd /opt/swim-workout-writer
+git fetch origin
+git pull --ff-only origin main
+docker compose -f docker-compose.yml -f docker-compose.analytics.yml up -d --build
+curl -fsS https://swim-writer.johnthompson.io/healthz
+```
+
+Recommended hardening:
+
+- Store the workflow in the `production` GitHub environment
+- Require approval for that environment if you want a manual gate before deploys
+- Use a deploy-specific SSH key instead of a personal key
+- Ensure the deploy user can run `docker compose` without interactive sudo
+
 ## 9. Rollback
 
 ```bash

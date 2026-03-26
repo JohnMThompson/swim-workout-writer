@@ -186,6 +186,7 @@ body {
   top: calc(100% + 0.5rem);
   right: 0;
   min-width: 220px;
+  max-width: min(240px, calc(100vw - 1.5rem));
   display: grid;
   gap: 0.45rem;
   padding: 0.55rem;
@@ -208,6 +209,9 @@ body {
   color: var(--accent-dark);
   text-decoration: none;
   cursor: pointer;
+  text-align: center;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .header-more-form {
@@ -547,8 +551,8 @@ textarea:focus {
   }
 
   .header-more-panel {
-    left: 0;
     right: 0;
-    min-width: 0;
+    min-width: 200px;
+    max-width: calc(100vw - 1.5rem);
   }
 }

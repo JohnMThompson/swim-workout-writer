@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="panel narrow stack">
+    <h2>Delete Workout</h2>
+    <p class="panel-copy">This permanently removes the saved workout record.</p>
+    <ul class="plain-list">
+      <li>{{ workout.start_date_time.strftime('%Y-%m-%d %H:%M') }}</li>
+      <li>{{ workout.location }}</li>
+      <li>{{ workout.total_distance_yards }} yd</li>
+      <li>{{ workout.duration }} min</li>
+    </ul>
+    {% if workout.comments %}
+      <p class="muted-note">{{ workout.comments }}</p>
+    {% endif %}
+    <form method="post" class="form-actions">
+      {{ form.hidden_tag() }}
+      <a class="ghost-button link-button" href="{{ url_for('main.manage_workouts') }}">Cancel</a>
+      {{ form.submit(class_="primary-button danger-button") }}
+    </form>
+  </section>
+{% endblock %}

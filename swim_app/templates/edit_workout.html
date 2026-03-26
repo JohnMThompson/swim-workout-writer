@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="review-grid">
+    <article class="panel">
+      <h2>Edit Workout</h2>
+      {% if duplicate_matches %}
+        <div class="inline-warning">
+          Possible duplicate: {{ duplicate_matches|length }} existing workout{{ '' if duplicate_matches|length == 1 else 's' }} match this date, time, location, distance, and duration.
+        </div>
+      {% endif %}
+      {% if stroke_mismatch %}
+        <div class="inline-warning">
+          Stroke total is {{ stroke_total }} yd, but total distance is {{ form.total_distance_yards.data }} yd.
+        </div>
+      {% endif %}
+      <form method="post" class="stack">
+        {{ form.hidden_tag() }}
+        {% include "_workout_form_fields.html" %}
+        <div class="form-actions">
+          <a class="ghost-button link-button" href="{{ url_for('main.manage_workouts') }}">Back to manage</a>
+          {{ form.submit(class_="primary-button") }}
+        </div>
+      </form>
+    </article>
+
+    <aside class="stack">
+      <section class="panel">
+        <h3>Current Record</h3>
+        <ul class="plain-list">
+          <li>{{ workout.start_date_time.strftime('%Y-%m-%d %H:%M') }}</li>
+          <li>{{ workout.location }}</li>
+          <li>{{ workout.total_distance_yards }} yd</li>
+          <li>{{ workout.duration }} min</li>
+        </ul>
+      </section>
+
+      {% if duplicate_matches %}
+        <section class="panel">
+          <h3>Possible Duplicates</h3>
+          <ul class="plain-list">
+            {% for match in duplicate_matches %}
+              <li>{{ match.start_date_time.strftime('%Y-%m-%d %H:%M') }} | {{ match.location }} | {{ match.total_distance_yards }} yd | {{ match.duration }} min</li>
+            {% endfor %}
+          </ul>
+        </section>
+      {% endif %}
+    </aside>
+  </section>
+{% endblock %}

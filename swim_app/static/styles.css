@@ -183,6 +183,10 @@ label {
   gap: 0.35rem;
 }
 
+.invisible-label {
+  visibility: hidden;
+}
+
 input,
 select,
 textarea,
@@ -253,6 +257,11 @@ textarea:focus {
 
 .compact-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.single-filter-row {
+  display: grid;
+  max-width: 340px;
 }
 
 .preview-image {
@@ -349,6 +358,16 @@ textarea:focus {
   align-items: center;
 }
 
+.filter-actions {
+  justify-content: flex-start;
+}
+
+.filter-actions .primary-button,
+.filter-actions .ghost-button,
+.filter-actions .link-button {
+  width: auto;
+}
+
 .link-button {
   display: inline-flex;
   align-items: center;
@@ -398,6 +417,12 @@ textarea:focus {
   .form-actions {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .filter-actions .primary-button,
+  .filter-actions .ghost-button,
+  .filter-actions .link-button {
+    width: 100%;
   }
 
   .panel {

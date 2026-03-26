@@ -289,15 +289,15 @@ def test_manage_workouts_shows_recent_workouts_by_default(app, client):
     response = client.get("/workouts")
 
     assert b"Manage Workouts" in response.data
-    tenth_day = (today - timedelta(days=9)).strftime("%Y-%m-%d 07:15").encode()
-    eleventh_day = (today - timedelta(days=10)).strftime("%Y-%m-%d 07:15").encode()
+    seventh_day = (today - timedelta(days=6)).strftime("%Y-%m-%d 07:15").encode()
+    eighth_day = (today - timedelta(days=7)).strftime("%Y-%m-%d 07:15").encode()
     newest_day = today.strftime("%Y-%m-%d 07:15").encode()
     assert newest_day in response.data
-    assert tenth_day in response.data
-    assert eleventh_day not in response.data
+    assert seventh_day in response.data
+    assert eighth_day not in response.data
 
 
-def test_manage_workouts_filters_by_last_x_days_and_limit(app, client):
+def test_manage_workouts_filters_by_last_x_days(app, client):
     login(client)
     today = date.today()
 
@@ -319,15 +319,47 @@ def test_manage_workouts_filters_by_last_x_days_and_limit(app, client):
             breaststroke_distance=None,
         )
 
-    response = client.get("/workouts?days=7&limit=1")
+    response = client.get("/workouts?days=7")
 
     newest_in_window = (today - timedelta(days=1)).strftime("%Y-%m-%d 16:45").encode()
     older_in_window = (today - timedelta(days=3)).strftime("%Y-%m-%d 18:00").encode()
     outside_window = (today - timedelta(days=12)).strftime("%Y-%m-%d 07:15").encode()
     assert newest_in_window in response.data
-    assert older_in_window not in response.data
+    assert older_in_window in response.data
     assert outside_window not in response.data
     assert b"YWCA" not in response.data
+
+
+def test_manage_workouts_supports_14_day_filter_option(app, client):
+    login(client)
+    today = date.today()
+
+    with app.app_context():
+        create_workout(
+            start_date_time=datetime.combine(today - timedelta(days=2), datetime.min.time()).replace(hour=8, minute=0),
+            location="North Pool",
+            freestyle_distance=736,
+            breaststroke_distance=None,
+        )
+        create_workout(
+            start_date_time=datetime.combine(today - timedelta(days=10), datetime.min.time()).replace(hour=8, minute=0),
+            location="South Pool",
+            freestyle_distance=736,
+            breaststroke_distance=None,
+        )
+        create_workout(
+            start_date_time=datetime.combine(today - timedelta(days=20), datetime.min.time()).replace(hour=8, minute=0),
+            location="Far Pool",
+            freestyle_distance=736,
+            breaststroke_distance=None,
+        )
+
+    response = client.get("/workouts?days=14")
+
+    assert b"North Pool" in response.data
+    assert b"South Pool" in response.data
+    assert b"Far Pool" not in response.data
+    assert b"Last 14 days" in response.data
 
 
 def test_edit_workout_updates_existing_record(app, client):

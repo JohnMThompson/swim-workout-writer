@@ -149,14 +149,10 @@ def review(upload_id: int):
     )
 
 
-@bp.route("/workouts", methods=["GET", "POST"])
+@bp.route("/workouts", methods=["GET"])
 @login_required
 def manage_workouts():
-    form = WorkoutFilterForm(formdata=request.args if request.method == "GET" else None)
-    if request.method == "POST" and form.validate_on_submit():
-        query_params = _workout_filter_query_params(form)
-        return redirect(url_for("main.manage_workouts", **query_params))
-
+    form = WorkoutFilterForm(formdata=request.args)
     workouts = _query_workouts(form)
     return render_template(
         "manage_workouts.html",
@@ -361,15 +357,11 @@ def _query_workouts(form: WorkoutFilterForm) -> list[Workout]:
     if days is not None:
         cutoff = datetime.combine(date.today() - timedelta(days=days - 1), datetime.min.time())
         query = query.filter(Workout.start_date_time >= cutoff)
-    limit = _parse_limit(form.limit.data)
-    return query.order_by(Workout.start_date_time.desc()).limit(limit).all()
+    return query.order_by(Workout.start_date_time.desc()).all()
 
 
 def _workout_filter_query_params(form: WorkoutFilterForm) -> dict:
-    return {
-        "days": form.days.data if _parse_days(form.days.data) is None else str(_parse_days(form.days.data)),
-        "limit": str(_parse_limit(form.limit.data)),
-    }
+    return {"days": form.days.data if _parse_days(form.days.data) is None else str(_parse_days(form.days.data))}
 
 
 def _optional_int(value: str | None) -> int | None:
@@ -420,24 +412,15 @@ def _has_stroke_mismatch(payload: dict, stroke_total: int) -> bool:
     return total_distance_yards > 0 and stroke_total != total_distance_yards
 
 
-def _parse_limit(raw_limit: str | None) -> int:
-    allowed_limits = {1, 10, 25, 50, 100}
-    try:
-        limit = int(raw_limit or 10)
-    except ValueError:
-        return 10
-    return limit if limit in allowed_limits else 10
-
-
 def _parse_days(raw_days: str | None) -> int | None:
     if raw_days == "all":
         return None
-    allowed_days = {7, 30, 90, 365}
+    allowed_days = {7, 14, 30, 90, 365}
     try:
-        days = int(raw_days or 30)
+        days = int(raw_days or 7)
     except ValueError:
-        return 30
-    return days if days in allowed_days else 30
+        return 7
+    return days if days in allowed_days else 7
 
 
 def _stringify_optional_int(value: int | None) -> str:

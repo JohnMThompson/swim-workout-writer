@@ -52,18 +52,13 @@ class WorkoutFilterForm(FlaskForm):
         "Last x days",
         choices=[
             ("7", "Last 7 days"),
+            ("14", "Last 14 days"),
             ("30", "Last 30 days"),
             ("90", "Last 90 days"),
             ("365", "Last 365 days"),
             ("all", "All time"),
         ],
-        default="30",
-        validators=[DataRequired()],
-    )
-    limit = SelectField(
-        "Results",
-        choices=[("1", "1"), ("10", "10"), ("25", "25"), ("50", "50"), ("100", "100")],
-        default="10",
+        default="7",
         validators=[DataRequired()],
     )
     submit = SubmitField("Apply filters")

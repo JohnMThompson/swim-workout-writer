@@ -9,13 +9,11 @@
           <p class="panel-copy">Browse recent swim workouts by time range, then edit or delete a saved record without entering the upload flow.</p>
         </div>
       </div>
-      <form method="post" class="stack">
-        {{ form.hidden_tag() }}
-        <div class="field-grid compact-grid">
-          <label>{{ form.days(aria_label="Last x days") }}</label>
-          <label><span>Results</span>{{ form.limit() }}</label>
+      <form method="get" class="stack">
+        <div class="single-filter-row">
+          <label><span class="invisible-label">Last x days</span>{{ form.days(aria_label="Last x days") }}</label>
         </div>
-        <div class="form-actions">
+        <div class="form-actions filter-actions">
           {{ form.submit(class_="primary-button") }}
           <a class="ghost-button link-button" href="{{ url_for('main.manage_workouts') }}">Reset</a>
         </div>

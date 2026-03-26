@@ -22,15 +22,31 @@
                 <a class="header-tab {{ 'is-active' if request.endpoint in ['main.manage_workouts', 'main.edit_workout', 'main.delete_workout'] else '' }}" href="{{ url_for('main.manage_workouts') }}">Manage Workouts</a>
               </nav>
             {% endif %}
-            <a class="dashboard-link icon-link" href="https://analytics.johnthompson.io/dashboard/swim_tracking" target="_blank" rel="noreferrer">
-              Swim Dashboard
-            </a>
-            {% if current_user.is_authenticated %}
-              <form method="post" action="{{ url_for('main.logout') }}">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button class="ghost-button" type="submit">Sign out</button>
-              </form>
-            {% endif %}
+            <div class="header-secondary">
+              <a class="dashboard-link icon-link" href="https://analytics.johnthompson.io/dashboard/swim_tracking" target="_blank" rel="noreferrer">
+                Swim Dashboard
+              </a>
+              {% if current_user.is_authenticated %}
+                <form method="post" action="{{ url_for('main.logout') }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button class="ghost-button" type="submit">Sign out</button>
+                </form>
+              {% endif %}
+            </div>
+            <details class="header-more-menu">
+              <summary class="header-more-trigger">More</summary>
+              <div class="header-more-panel">
+                <a class="header-more-item" href="https://analytics.johnthompson.io/dashboard/swim_tracking" target="_blank" rel="noreferrer">
+                  Swim Dashboard
+                </a>
+                {% if current_user.is_authenticated %}
+                  <form method="post" action="{{ url_for('main.logout') }}" class="header-more-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button class="header-more-item" type="submit">Sign out</button>
+                  </form>
+                {% endif %}
+              </div>
+            </details>
           </div>
         </div>
       </header>

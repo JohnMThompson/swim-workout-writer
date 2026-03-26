@@ -1,0 +1,20 @@
+<div class="field-grid">
+  <label><span>Workout date</span>{{ form.workout_date() }}</label>
+  <label><span>Start time</span>{{ form.start_time() }}</label>
+  <label><span>End time</span>{{ form.end_time(readonly=true) }}</label>
+  <label><span>Duration (minutes)</span>{{ form.duration() }}</label>
+  <label><span>Total distance yards</span>{{ form.total_distance_yards() }}</label>
+  <label><span>Location</span>{{ form.location() }}</label>
+  <label><span>Freestyle yards</span>{{ form.freestyle_distance() }}</label>
+  <label><span>Breaststroke yards</span>{{ form.breaststroke_distance() }}</label>
+  <label><span>Backstroke yards</span>{{ form.backstroke_distance() }}</label>
+  <label><span>Butterfly yards</span>{{ form.butterfly_distance() }}</label>
+</div>
+<label>
+  <span>Comments</span>
+  {{ form.comments(rows=4) }}
+</label>
+<label class="checkbox-row">
+  {{ form.allow_stroke_mismatch() }}
+  <span>Allow save when stroke total does not match total distance</span>
+</label>

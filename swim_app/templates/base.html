@@ -13,9 +13,15 @@
         <div class="dashboard-header-inner">
           <div>
             <h1 class="dashboard-title">Swim Workout Writer</h1>
-            <p class="dashboard-subtitle">Upload, review, and save Apple Workouts swim sessions.</p>
+            <p class="dashboard-subtitle">Upload, review, edit, and delete Apple Workouts swim sessions.</p>
           </div>
           <div class="header-actions">
+            {% if current_user.is_authenticated %}
+              <nav class="header-tabs" aria-label="Primary">
+                <a class="header-tab {{ 'is-active' if request.endpoint in ['main.upload', 'main.review'] else '' }}" href="{{ url_for('main.upload') }}">Upload</a>
+                <a class="header-tab {{ 'is-active' if request.endpoint in ['main.manage_workouts', 'main.edit_workout', 'main.delete_workout'] else '' }}" href="{{ url_for('main.manage_workouts') }}">Manage Workouts</a>
+              </nav>
+            {% endif %}
             <a class="dashboard-link icon-link" href="https://analytics.johnthompson.io/dashboard/swim_tracking" target="_blank" rel="noreferrer">
               Swim Dashboard
             </a>

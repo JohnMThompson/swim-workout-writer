@@ -6,6 +6,7 @@ from sqlalchemy import inspect
 from sqlalchemy.exc import IntegrityError
 
 from .extensions import csrf, db, login_manager
+from .locations import get_canonical_locations
 from .models import StrokeMapping, UploadSession, User, Workout
 
 
@@ -35,6 +36,7 @@ def create_app() -> Flask:
             _validate_required_tables()
         _ensure_default_admin()
         _ensure_default_stroke_mappings()
+        _ensure_canonical_locations_file()
 
     return app
 
@@ -81,6 +83,10 @@ def _ensure_default_stroke_mappings() -> None:
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
+
+
+def _ensure_canonical_locations_file() -> None:
+    get_canonical_locations()
 
 
 def _normalize_database_uri(database_uri: str | None, instance_path: str) -> str:

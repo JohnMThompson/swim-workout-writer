@@ -5,16 +5,20 @@ import pytest
 
 from swim_app import create_app
 from swim_app.extensions import db
+from swim_app.locations import get_canonical_locations
 from swim_app.models import UploadSession, Workout
-from swim_app.parser import parse_workout
+from swim_app.parser import _extract_location, parse_workout
 from swim_app.routes import _find_duplicate_workouts, _sum_stroke_fields
 
 
 @pytest.fixture
-def app(monkeypatch):
+def app(monkeypatch, tmp_path):
     monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
     monkeypatch.setenv("ADMIN_USERNAME", "tester")
     monkeypatch.setenv("ADMIN_PASSWORD", "secret-pass")
+    locations_path = tmp_path / "canonical_locations.txt"
+    locations_path.write_text("Minnetonka\nEdina\nEden Prairie\n", encoding="utf-8")
+    monkeypatch.setenv("CANONICAL_LOCATIONS_FILE", str(locations_path))
     app = create_app()
     app.config.update(TESTING=True, WTF_CSRF_ENABLED=False)
     yield app
@@ -95,6 +99,25 @@ def test_parse_total_distance_can_fall_back_to_stroke_sum(app):
 
     assert result.total_distance_yards == 550
     assert result.freestyle_distance == 550
+
+
+@pytest.mark.parametrize(
+    ("ocr_text", "expected_location"),
+    [
+        ("Workout summary Minnetonka 16:45-17:15", "Minnetonka"),
+        ("Workout summary EDINA 16:45-17:15", "Edina"),
+        ("Workout summary EdenPrairie 16:45-17:15", "Eden Prairie"),
+        ("Workout summary Pool Rec Center 16:45-17:15", ""),
+    ],
+)
+def test_extract_location_only_returns_known_locations(ocr_text, expected_location):
+    assert _extract_location(ocr_text) == expected_location
+
+
+def test_extract_location_issue_regression_returns_blank_for_bad_guess():
+    ocr_text = "Wed, Mar 24 16:45-17:15 Summary Completed Workout Recovery"
+
+    assert _extract_location(ocr_text) == ""
 
 
 def test_find_duplicate_workouts_matches_existing_row(app):
@@ -395,6 +418,60 @@ def test_edit_workout_updates_existing_record(app, client):
         assert workout.total_distance_yards == 800
         assert workout.comments == "After"
         assert workout.backstroke_distance == 100
+    with app.app_context():
+        assert "Minnetonka Community Center" in get_canonical_locations()
+
+
+def test_review_save_adds_new_location_to_canonical_list(app, client):
+    login(client)
+
+    with app.app_context():
+        session = UploadSession(
+            image_filename="fake.png",
+            extracted_payload={
+                "workout_date": "2026-03-24",
+                "start_time": "16:45",
+                "end_time": "17:15",
+                "duration": 30,
+                "total_distance_yards": 736,
+                "location": "",
+                "comments": "",
+                "freestyle_distance": 598,
+                "breaststroke_distance": 138,
+                "backstroke_distance": 0,
+                "butterfly_distance": 0,
+                "raw_strokes": [],
+                "unknown_strokes": [],
+                "ocr_text": "",
+            },
+        )
+        db.session.add(session)
+        db.session.commit()
+        upload_id = session.id
+
+    response = client.post(
+        f"/review/{upload_id}",
+        data={
+            "upload_id": str(upload_id),
+            "workout_date": "2026-03-24",
+            "start_time": "16:45",
+            "end_time": "17:15",
+            "duration": "30",
+            "total_distance_yards": "736",
+            "location": "St. Louis Park",
+            "comments": "",
+            "freestyle_distance": "598",
+            "breaststroke_distance": "138",
+            "backstroke_distance": "0",
+            "butterfly_distance": "0",
+        },
+        follow_redirects=True,
+    )
+
+    assert b"Workout saved." in response.data
+    with app.app_context():
+        assert "St. Louis Park" in get_canonical_locations()
+        assert _extract_location("Workout summary stlouispark 16:45-17:15") == "St. Louis Park"
 
 
 def test_edit_workout_blocks_mismatched_strokes_without_override(app, client):

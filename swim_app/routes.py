@@ -30,6 +30,7 @@ from .forms import (
     UploadForm,
     WorkoutFilterForm,
 )
+from .locations import save_canonical_location
 from .models import StrokeMapping, UploadSession, User, Workout
 from .parser import build_start_datetime, parse_workout
 
@@ -131,6 +132,7 @@ def review(upload_id: int):
 
         workout = Workout()
         _apply_workout_data(workout, workout_data)
+        save_canonical_location(workout_data["location"])
         db.session.add(workout)
         db.session.delete(upload_session)
         db.session.commit()
@@ -195,6 +197,7 @@ def edit_workout(workout_id: int):
             )
 
         _apply_workout_data(workout, workout_data)
+        save_canonical_location(workout_data["location"])
         db.session.commit()
         flash("Workout updated.", "success")
         return redirect(url_for("main.manage_workouts"))

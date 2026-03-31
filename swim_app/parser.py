@@ -8,11 +8,11 @@ from pathlib import Path
 from PIL import Image, ImageOps
 import pytesseract
 
+from .locations import get_canonical_locations
 from .models import StrokeMapping
 
 DATE_RE = re.compile(r"(Mon|Tue|Wed|Thu|Fri|Sat|Sun),\s+([A-Z][a-z]{2})\s+(\d{1,2})")
 TIME_RANGE_RE = re.compile(r"(\d{1,2}:\d{2})-(\d{1,2}:\d{2})")
-LOCATION_RE = re.compile(r"(?:Minnetonka|Edina|Eden Prairie|[A-Za-z][A-Za-z ]+)")
 DURATION_RE = re.compile(r"(\d+):(\d{2}):(\d{2})")
 DISTANCE_RE = re.compile(r"(\d+)\s*Y[A-Z]?D", re.IGNORECASE)
 DISTANCE_LABEL_RE = re.compile(
@@ -37,7 +37,6 @@ MONTHS = {
     "Nov": 11,
     "Dec": 12,
 }
-
 
 @dataclass
 class ParseResult:
@@ -116,14 +115,11 @@ def parse_workout(image_path: str | Path, submission_date: date | None = None) -
 
 
 def _extract_location(text: str) -> str:
-    if "Minnetonka" in text:
-        return "Minnetonka"
-    if "Edina" in text:
-        return "Edina"
-    if "Eden Prairie" in text:
-        return "Eden Prairie"
-    match = LOCATION_RE.search(text)
-    return match.group(0) if match else ""
+    normalized_text = _normalize_location_text(text)
+    for location in get_canonical_locations():
+        if _normalize_location_text(location) in normalized_text:
+            return location
+    return ""
 
 
 def _apply_strokes(result: ParseResult, text: str) -> None:
@@ -176,3 +172,7 @@ def build_start_datetime(workout_date: str, start_time: str) -> datetime:
 def _rounded_minutes(hours: int, minutes: int, seconds: int) -> int:
     total_seconds = hours * 3600 + minutes * 60 + seconds
     return int((total_seconds + 30) // 60)
+
+
+def _normalize_location_text(text: str) -> str:
+    return re.sub(r"[^a-z]", "", text.lower())

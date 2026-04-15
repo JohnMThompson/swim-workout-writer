@@ -18,8 +18,8 @@
         {{ form.hidden_tag() }}
         {% include "_workout_form_fields.html" %}
         <div class="form-actions">
-          <a class="ghost-button link-button" href="{{ url_for('main.upload') }}">Back to upload</a>
           {{ form.submit(class_="primary-button") }}
+          <a class="ghost-button link-button" href="{{ url_for('main.upload') }}">Back to upload</a>
         </div>
       </form>
     </article>

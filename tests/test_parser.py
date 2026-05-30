@@ -101,6 +101,25 @@ def test_parse_total_distance_can_fall_back_to_stroke_sum(app):
     assert result.freestyle_distance == 550
 
 
+def test_parse_total_distance_handles_thousands_separators(app, monkeypatch):
+    ocr_text = (
+        "Tue, May 26 Pool Swim Kickboard (69yd) Freestyle (1,311yd) "
+        "16:20-17:00 Minnetonka Workout Time 0:40:40 Distance 1,380YD "
+        "Pool Length 23YD"
+    )
+    monkeypatch.setattr("swim_app.parser.extract_text", lambda _: ocr_text)
+
+    with app.app_context():
+        result = parse_workout("fake.png", submission_date=date(2026, 5, 30))
+
+    assert result.total_distance_yards == 1380
+    assert result.freestyle_distance == 1380
+    assert result.raw_strokes == [
+        {"label": "Kickboard", "yards": 69},
+        {"label": "Freestyle", "yards": 1311},
+    ]
+
+
 @pytest.mark.parametrize(
     ("ocr_text", "expected_location"),
     [

@@ -14,12 +14,13 @@ from .models import StrokeMapping
 DATE_RE = re.compile(r"(Mon|Tue|Wed|Thu|Fri|Sat|Sun),\s+([A-Z][a-z]{2})\s+(\d{1,2})")
 TIME_RANGE_RE = re.compile(r"(\d{1,2}:\d{2})-(\d{1,2}:\d{2})")
 DURATION_RE = re.compile(r"(\d+):(\d{2}):(\d{2})")
-DISTANCE_RE = re.compile(r"(\d+)\s*Y[A-Z]?D", re.IGNORECASE)
+YARD_VALUE = r"\d{1,3}(?:,\d{3})*|\d+"
+DISTANCE_RE = re.compile(rf"({YARD_VALUE})\s*Y[A-Z]?D", re.IGNORECASE)
 DISTANCE_LABEL_RE = re.compile(
-    r"Distance\s+(\d+)\s*Y[A-Z]?D", re.IGNORECASE
+    rf"Distance\s+({YARD_VALUE})\s*Y[A-Z]?D", re.IGNORECASE
 )
 STROKE_RE = re.compile(
-    r"(Freestyle|Breaststroke|Backstroke|Butterfly|Kickboard)\s*\((\d+)yd\)",
+    rf"(Freestyle|Breaststroke|Backstroke|Butterfly|Kickboard)\s*\(({YARD_VALUE})yd\)",
     re.IGNORECASE,
 )
 
@@ -102,7 +103,7 @@ def parse_workout(image_path: str | Path, submission_date: date | None = None) -
         hours, minutes, seconds = durations[0]
         result.duration = _rounded_minutes(int(hours), int(minutes), int(seconds))
 
-    distances = [int(value) for value in DISTANCE_RE.findall(normalized)]
+    distances = [_parse_yards(value) for value in DISTANCE_RE.findall(normalized)]
     if distances:
         result.total_distance_yards = _extract_total_distance(normalized, distances)
 
@@ -136,12 +137,13 @@ def _apply_strokes(result: ParseResult, text: str) -> None:
     unknown = set()
     for label, yards in STROKE_RE.findall(text):
         clean_label = label.lower()
-        result.raw_strokes.append({"label": label, "yards": int(yards)})
+        stroke_yards = _parse_yards(yards)
+        result.raw_strokes.append({"label": label, "yards": stroke_yards})
         target = mappings.get(clean_label)
         if not target:
             unknown.add(label)
             continue
-        totals[target] += int(yards)
+        totals[target] += stroke_yards
 
     result.freestyle_distance = totals["freestyle"]
     result.breaststroke_distance = totals["breaststroke"]
@@ -152,9 +154,9 @@ def _apply_strokes(result: ParseResult, text: str) -> None:
 
 def _extract_total_distance(text: str, distances: list[int]) -> int:
     if match := DISTANCE_LABEL_RE.search(text):
-        return int(match.group(1))
+        return _parse_yards(match.group(1))
 
-    stroke_totals = [int(yards) for _, yards in STROKE_RE.findall(text)]
+    stroke_totals = [_parse_yards(yards) for _, yards in STROKE_RE.findall(text)]
     if stroke_totals:
         stroke_sum = sum(stroke_totals)
         if stroke_sum in distances:
@@ -163,6 +165,10 @@ def _extract_total_distance(text: str, distances: list[int]) -> int:
             return stroke_sum
 
     return max(distances)
+
+
+def _parse_yards(value: str) -> int:
+    return int(value.replace(",", ""))
 
 
 def build_start_datetime(workout_date: str, start_time: str) -> datetime:

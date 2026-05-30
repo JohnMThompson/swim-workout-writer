@@ -48,6 +48,23 @@ For shared-Caddy deployment, set `SHARED_PROXY_NETWORK` in `.env` to the externa
 
 See [docs/deploy-digitalocean.md](/home/john/git-repos/swim-workout-writer/docs/deploy-digitalocean.md) for the DigitalOcean deployment runbook.
 
+## Release checklist
+
+Before release:
+- Confirm `git status --short` is clean and the target branch is up to date.
+- Run `pytest`.
+- Review pending migrations or schema assumptions; production should keep `AUTO_CREATE_SCHEMA=false`.
+- Verify required environment values are set: `SECRET_KEY`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `DATABASE_URL`, `UPLOAD_FOLDER`, and deployment-specific proxy settings.
+
+After deploy:
+- Confirm the deployment completed without container restart loops.
+- Verify `GET /healthz` returns `{"status":"ok"}`.
+- Open the app, confirm the login page loads, and complete a valid login.
+- Spot-check the upload/review flow before relying on the release.
+
+Rollback reminder:
+- If verification fails, redeploy the last known good commit using the rollback steps in [docs/deploy-digitalocean.md](/home/john/git-repos/swim-workout-writer/docs/deploy-digitalocean.md#9-rollback).
+
 ## Notes
 - Unknown stroke labels can be mapped permanently from the review screen.
 - Uploaded screenshots are stored in `uploads/`.

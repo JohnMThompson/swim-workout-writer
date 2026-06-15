@@ -5,6 +5,8 @@ Private mobile-friendly web app for uploading Apple Workouts swim screenshots, r
 The production workout destination table is `swim_tracking`.
 In production, schema auto-creation should remain disabled so startup fails fast if required tables are missing.
 
+<img width="1156" height="646" alt="image" src="https://github.com/user-attachments/assets/14ff8e2d-691e-4593-ae04-741a428f49bd" />
+
 ## Features
 - Single-user login
 - Screenshot upload from mobile

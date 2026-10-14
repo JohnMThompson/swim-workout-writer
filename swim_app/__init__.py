@@ -1,4 +1,5 @@
 from pathlib import Path
+import os
 
 from flask import Flask
 from dotenv import load_dotenv
@@ -8,16 +9,38 @@ from sqlalchemy.exc import IntegrityError
 from .extensions import csrf, db, login_manager
 from .locations import get_canonical_locations
 from .models import StrokeMapping, UploadSession, User, Workout
+from .config import Config
 
 
 def create_app() -> Flask:
-    load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+    load_dotenv(Path(__file__).resolve().parent.parent / ".env", override=False)
     app = Flask(__name__, instance_relative_config=True)
-    app.config.from_object("swim_app.config.Config")
+    app.config.from_object(Config)
+    app.config.update(
+        SECRET_KEY=os.environ.get("SECRET_KEY", "change-me"),
+        DEBUG=os.environ.get("DEBUG", "false").lower() == "true",
+        SQLALCHEMY_DATABASE_URI=os.environ.get("DATABASE_URL"),
+        UPLOAD_FOLDER=os.environ.get("UPLOAD_FOLDER", "uploads"),
+        ADMIN_USERNAME=os.environ.get("ADMIN_USERNAME", "admin"),
+        ADMIN_PASSWORD=os.environ.get("ADMIN_PASSWORD", "change-me-now"),
+        INITIALIZE_DEFAULT_ADMIN=(
+            os.environ.get("INITIALIZE_DEFAULT_ADMIN", "true").lower() == "true"
+        ),
+        AUTO_CREATE_SCHEMA=os.environ.get("AUTO_CREATE_SCHEMA"),
+        REQUIRE_DATABASE_URL=os.environ.get("REQUIRE_DATABASE_URL", "false").lower() == "true",
+        INITIALIZE_DEFAULT_STROKE_MAPPINGS=(
+            os.environ.get("INITIALIZE_DEFAULT_STROKE_MAPPINGS", "true").lower() == "true"
+        ),
+        CANONICAL_LOCATIONS_FILE=os.environ.get("CANONICAL_LOCATIONS_FILE"),
+    )
+    if app.config.get("REQUIRE_DATABASE_URL") and not (app.config.get("SQLALCHEMY_DATABASE_URI") or "").strip():
+        raise RuntimeError("DATABASE_URL must be set for this deployment.")
     Path(app.instance_path).mkdir(parents=True, exist_ok=True)
     app.config["SQLALCHEMY_DATABASE_URI"] = _normalize_database_uri(
         app.config.get("SQLALCHEMY_DATABASE_URI"), app.instance_path
     )
+    if app.config.get("REQUIRE_DATABASE_URL") and _should_auto_create_schema(app):
+        raise RuntimeError("AUTO_CREATE_SCHEMA must be false for this deployment.")
 
     Path(app.config["UPLOAD_FOLDER"]).mkdir(parents=True, exist_ok=True)
 
@@ -34,8 +57,10 @@ def create_app() -> Flask:
             db.create_all()
         else:
             _validate_required_tables()
-        _ensure_default_admin()
-        _ensure_default_stroke_mappings()
+        if app.config.get("INITIALIZE_DEFAULT_ADMIN", True):
+            _ensure_default_admin()
+        if app.config.get("INITIALIZE_DEFAULT_STROKE_MAPPINGS", True):
+            _ensure_default_stroke_mappings()
         _ensure_canonical_locations_file()
 
     return app
@@ -46,16 +71,6 @@ def _ensure_default_admin() -> None:
     password = User.default_password()
     existing = User.query.filter_by(username=username).first()
     if existing:
-        existing.password_hash = User.create(username=username, password=password).password_hash
-        db.session.commit()
-        return
-    users = User.query.all()
-    if len(users) == 1:
-        users[0].username = username
-        users[0].password_hash = User.create(
-            username=username, password=password
-        ).password_hash
-        db.session.commit()
         return
     db.session.add(User.create(username=username, password=password))
     try:

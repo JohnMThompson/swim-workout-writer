@@ -50,6 +50,8 @@ For shared-Caddy deployment, set `SHARED_PROXY_NETWORK` in `.env` to the externa
 
 See [docs/deploy-digitalocean.md](/home/john/git-repos/swim-workout-writer/docs/deploy-digitalocean.md) for the DigitalOcean deployment runbook.
 
+See [docs/deploy-pileated.md](/home/john/git-repos/swim-workout-writer/docs/deploy-pileated.md) for the Pileated deployment runbook. Pileated uses the independently managed Caddy instance in `/srv/ingress` and the external Docker network `web`.
+
 ## Release checklist
 
 Before release:
@@ -70,4 +72,4 @@ Rollback reminder:
 ## Notes
 - Unknown stroke labels can be mapped permanently from the review screen.
 - Uploaded screenshots are stored in `uploads/`.
-- The app creates the single admin account on first boot from `ADMIN_USERNAME` and `ADMIN_PASSWORD`.
+- The app creates the configured admin account on first boot from `ADMIN_USERNAME` and `ADMIN_PASSWORD`. These are provisioning values; startup does not overwrite existing passwords or rename users.

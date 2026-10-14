@@ -1,0 +1,21 @@
+services:
+  web:
+    ports: !reset []
+    expose:
+      - "8000"
+    restart: unless-stopped
+    environment:
+      REQUIRE_DATABASE_URL: "true"
+      AUTO_CREATE_SCHEMA: "false"
+      INITIALIZE_DEFAULT_ADMIN: "false"
+      INITIALIZE_DEFAULT_STROKE_MAPPINGS: "false"
+    networks:
+      default: null
+      web:
+        aliases:
+          - swim-writer
+
+networks:
+  web:
+    external: true
+    name: web

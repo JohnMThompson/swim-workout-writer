@@ -19,6 +19,11 @@ def create_app() -> Flask:
     app.config.update(
         SECRET_KEY=os.environ.get("SECRET_KEY", "change-me"),
         DEBUG=os.environ.get("DEBUG", "false").lower() == "true",
+        SESSION_COOKIE_SECURE=(
+            os.environ.get("SESSION_COOKIE_SECURE", "false").lower() == "true"
+        ),
+        SESSION_COOKIE_HTTPONLY=True,
+        SESSION_COOKIE_SAMESITE="Lax",
         SQLALCHEMY_DATABASE_URI=os.environ.get("DATABASE_URL"),
         UPLOAD_FOLDER=os.environ.get("UPLOAD_FOLDER", "uploads"),
         ADMIN_USERNAME=os.environ.get("ADMIN_USERNAME", "admin"),

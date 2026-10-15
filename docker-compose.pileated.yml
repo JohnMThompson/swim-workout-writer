@@ -9,6 +9,7 @@ services:
       AUTO_CREATE_SCHEMA: "false"
       INITIALIZE_DEFAULT_ADMIN: "false"
       INITIALIZE_DEFAULT_STROKE_MAPPINGS: "false"
+      SESSION_COOKIE_SECURE: "true"
     networks:
       default: null
       web:

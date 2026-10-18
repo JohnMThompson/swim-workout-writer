@@ -15,8 +15,12 @@ services:
       web:
         aliases:
           - swim-writer
+      mysql:
 
 networks:
   web:
     external: true
     name: web
+  mysql:
+    external: true
+    name: mysql
